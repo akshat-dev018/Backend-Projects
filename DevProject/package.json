@@ -2,15 +2,16 @@
   "name": "backend-projects",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "app.js",
   "scripts": {
-    "dev":"nodemon src/app.js "
+    "dev": "nodemon src/app.js "
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "express": "^5.2.1" 
+    "express": "^5.2.1",
+    "mongoose": "^9.9.4"
   }
 }
