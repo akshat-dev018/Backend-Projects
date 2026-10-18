@@ -17,3 +17,13 @@ export function createRefreshToken({userId , role}){
 
     return refreshToken
 } 
+
+// to read data inside refresh token
+export function readRefreshToken(refreshToken){
+    return jwt.verify(refreshToken,config.REFRESH_TOKEN_SECRET);
+}
+
+// to read data inside access token
+export function readAccessToken(accessToken){
+    return jwt.verify(accessToken,config.ACCESS_TOKEN_SECRET);
+}

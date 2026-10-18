@@ -21,6 +21,9 @@ const userSchema = new mongoose.Schema({
         enum:["user","seller"]
         // enum means ki iss role property ki user ya seller m se hi koi property
         // ho skti koi 3rd property nhi aa skti
+    },
+    refreshToken:{
+        type:String
     }
 })
 
