@@ -1,7 +1,7 @@
 import { readAccessToken } from "../utils/auth.utils.js";
 
 export function authencticate(req,res,next){
-    const accessToken = req.headers.Authorization?.split(" ")[1];
+    const accessToken = req.headers.authorization?.split(" ")[1];
 
     if(!accessToken){
         return res.status(400).json({
@@ -14,7 +14,7 @@ export function authencticate(req,res,next){
         const decoded = readAccessToken(accessToken);
 
         req.user = decoded;
-        // we create req.user property and assigned the data of decoded
+ // we create req.user property and assigned the data of decoded which is userId and role
 
         next();
 

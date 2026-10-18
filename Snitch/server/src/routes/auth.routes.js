@@ -14,6 +14,6 @@ router.post("/login",loginValidator,login);
 
 router.post("/refresh",refresh);
 
-router.get("/me",authencticate,getMe)
+router.get("/getme",authencticate,getMe)
 
 export default router
