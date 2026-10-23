@@ -14,12 +14,12 @@ const productSchema = new mongoose.Schema({
         minLength:20,
         maxLength:500
     },
-    images:[{
-        type:String,  
-    }],
+    images:{
+    type:[{type:String}],  
     validate:{
-        validator: images=>images.length <= 5,
+        validator: (images)=>images.length <= 5,
         message: "A product can have at most 5 images " 
+    },
     },
     price:{
         amount:{
