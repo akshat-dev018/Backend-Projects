@@ -1,32 +1,39 @@
-// generally we use "use" to write middleware
-// handle all Auth Middleware req (get,post,patch,delete)
-const adminAuth = (req,res,next)=>{
-    console.log("ADMIN AUTH IS GETTING CHECKED!!");
-    const token ="xyz";
-    const isAuthorized = token === "xyz";
+const jwt = require("jsonwebtoken");
+const UserModel = require("../models/user");
 
-    if(!isAuthorized){
-    res.status(401).send("Unauthorized request");
+const userAuth = async (req,res,next)=>{
+
+   try {
+    const cookies = req.cookies;
+
+    const {token} = cookies;
+
+    if(!token){
+        throw new Error("Token is not valid");
     }
-    else{
-        next();
+
+    const decodedData = await jwt.verify(token,"DEV@Tinder$790");
+
+    const {_id} = decodedData;
+
+    const user = await UserModel.findById(_id);
+
+    if(!user){
+        throw new Error("User not found");
     }
+
+    // we found the user just attach it to the req
+    req.user = user;
+    
+    next();
 }
-
-const userAuth = (req,res,next)=>{
-    console.log("USER AUTH IS GETTING CHECKED!!");
-    const token ="xyz";
-    const isAuthorized = token === "xyz";
-
-    if(!isAuthorized){
-    res.status(401).send("Unauthorized request");
+    catch(error){
+        res.status(400).send("ERROR:"+error.message)
     }
-    else{
-        next();
-    }
+
 }
 
 
 module.exports = {
-    adminAuth,userAuth
+    userAuth
 }

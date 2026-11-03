@@ -1,13 +1,18 @@
 const express = require("express");
 const connectDB = require("./config/database");
-const User = require("./models/user");
+const UserModel = require("./models/user");
 const {validateSignUpData,validateLoginData} = require("./utils/validation");
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+const {userAuth} = require("./middleware/auth")
 
 
 const app = express();
 
 app.use(express.json());
+
+app.use(cookieParser());
 
 app.post("/signup", async (req,res)=>{
 
@@ -18,10 +23,10 @@ app.post("/signup", async (req,res)=>{
     const {firstName,lastName,emailId,password} = req.body;
 
     // Encrypt the password
-        const passwordHash = await bcrypt.hash(password,10);
+        const passwordHash = await user.validatePassword(password);
 
     // creating a new instance of the user model
-    const user = new User({
+    const user = new UserModel({
         firstName,
         lastName,
         emailId,
@@ -45,7 +50,7 @@ app.post("/login", async (req,res)=>{
 
         const {emailId,password} = req.body;
 
-        const user = await User.findOne({
+        const user = await UserModel.findOne({
             emailId: emailId.trim().toLowerCase()
         })
         
@@ -57,10 +62,18 @@ app.post("/login", async (req,res)=>{
             password,user.password
         )
 
-        if(!isPasswordValid){
-            return res.status(401).send("Invalid email or password");
-        }else{
-        res.status(200).send("Login successful");
+        if(isPasswordValid){
+            // Create a jwt token
+        const token = await user.getJWT()
+            
+            // Add the token to cookie and send the res back to the user
+            res.cookie("token",token,{
+                expires: new Date(Date.now()+ 1*3600000) //cookies expires in 1 hour
+            });
+            res.status(200).send("Login successful");
+        }
+        else{
+        return res.status(401).send("Invalid email or password");
         }
 
 
@@ -70,85 +83,22 @@ app.post("/login", async (req,res)=>{
     }
 })
 
-// getting single user
-app.get("/user", async (req,res)=>{
-    const userEmail = req.body.emailId;
+// profile
+app.get("/profile",userAuth, async (req,res)=>{
+try {
+   const user = req.user;
 
-    try{
-        const user = await User.findOne({emailId:userEmail});
-        if(!user){
-        res.status(404).send("User not found");
-        }
-        else{
-            res.send(user);
-        }
-    }
-    catch(err){
-        res.status(400).send("Something went wrong");
-    }
-})
-
-// Feed API = GET /feed - get all the users from the database
-app.get("/feed", async (req,res)=>{
-    try{
-        const users = await User.find({});
-        res.send(users);
-    }
-    catch (err){
-        res.status(400).send("something went wrong")
-    }
+   res.status(200).send(user);
+} catch (error) {
+    res.status(400).send("ERROR :" + err.message);
+}
 });
 
-// delete
-app.delete("/user",async (req,res)=>{
 
-    const userId = req.body.userId;
-
-    try {
-        const userId = await User.findByIdAndDelete(userId);
-
-        res.send("user deleted successfully")
-    } catch (err) {
-        res.status(400).send("Something went wrong");  
-    }
+app.post("/sendConnectionRequest",userAuth,async(req,res)=>{
+    
 })
 
-// update data of user
-app.patch("/user/:userId",async (req,res)=>{
-
-    const userId = req.params?.userId;
-    const data = req.body;
-
-   
-    try {
-    const user =  await User.findByIdAndUpdate({_id:userId  },data,{
-        returnDocument:"before",
-        // it gives the previous data stored inside mongodb 
-        runValidators:true,
-      });
-      
-    const ALLOWED_UPDATES = [
-    "photoUrl","about","gender","age","skills"
-    ]
-    const isUpdateAllowed = Object.keys(data).every((k)=>
-    ALLOWED_UPDATES.includes(k)
-    );
-    if(!isUpdateAllowed){
-        throw new Error("Update not allowed");
-    }
-
-    if(data?.skills.length>10){
-        throw new Error("Skills can not be more than 10");
-    }
-
-
-      console.log(user);
-      res.send("user updated successfully");
-    } catch (err) {
-        res.status(400).send("Update Failed :"+ err.message);
-    }
-
-})
 
 connectDB().then(()=>{
     console.log("database connection established");
