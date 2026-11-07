@@ -49,6 +49,10 @@ const productSchema = new mongoose.Schema({
             type:mongoose.Types.ObjectId, //seller id 
             ref:"users", //collection where we got the seller id 
             required:true
+        },
+        published:{
+            type:Boolean,
+            default:false
         }
 })
 
